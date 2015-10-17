@@ -24,7 +24,7 @@
             android:background="#ff0000ff"
             />
 
-        <ImageButton
+        <Button
             android:id="@+id/btn_main_upload"
             android:text="Upload a picture!"
             android:layout_width="match_parent"
