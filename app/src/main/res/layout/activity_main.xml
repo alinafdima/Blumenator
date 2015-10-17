@@ -6,6 +6,34 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity">
 
-    <TextView android:text="Hello World!" android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical"
+        android:weightSum="2"
+        >
+
+        <Button
+            android:id="@+id/btn_main_camera"
+            android:text="Take a picture!"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="#ff0000ff"
+            />
+
+        <ImageButton
+            android:id="@+id/btn_main_upload"
+            android:text="Upload a picture!"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="#b0b0b0"
+            />
+
+    </LinearLayout>
+
+
 </RelativeLayout>
