@@ -23,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import android.provider.Settings.Secure;
+import android.util.Log;
 
 import com.loopj.android.http.*;
 
@@ -59,7 +60,8 @@ public class WaitingActivity extends AppCompatActivity {
         RequestParams params = new RequestParams();
         try {
             params.put("mediafile", myFile);
-        } catch(FileNotFoundException e) {}
+        } catch(FileNotFoundException e) {
+            Log.d("L1", e.toString());}
         params.put("jobid", jobid);
 
         ServerClass.get("flowerrecognition", params, new JsonHttpResponseHandler() {
