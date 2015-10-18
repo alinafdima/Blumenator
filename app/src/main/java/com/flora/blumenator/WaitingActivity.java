@@ -30,6 +30,8 @@ import com.loopj.android.http.*;
 
 import org.json.*;
 
+import cz.msebera.android.httpclient.Header;
+
 
 public class WaitingActivity extends AppCompatActivity {
 
@@ -55,7 +57,7 @@ public class WaitingActivity extends AppCompatActivity {
     void sendServerRequest(String image_str) {
         Format formatter = new SimpleDateFormat("yyyy-MM-dd-hh-mm-ss");
         String stamp = formatter.format(new Date());
-        String jobid = android_id + stamp;
+        final String jobid = android_id + stamp;
 
         RequestParams params = new RequestParams();
         try {
@@ -67,18 +69,66 @@ public class WaitingActivity extends AppCompatActivity {
         }
         params.put("jobid", jobid);
 
-        ServerClass.post("flowerrecognition", params, new JsonHttpResponseHandler() {
-            public void onSuccess(int statusCode, PreferenceActivity.Header[] headers, JSONObject response) {
-                // If the response is JSONObject instead of expected JSONArray
-                System.out.println("Delivery ok");
+//        ServerClass.post("flowerrecognition", params, new TextHttpResponseHandler() {
+//            public void onSuccess(int statusCode, PreferenceActivity.Header[] headers, String response) {
+//                // If the response is JSONObject instead of expected JSONArray
+//                Log.e("boumare", "Delivery ok");
+//
+//                while (true) {
+//                    RequestParams params = new RequestParams();
+//                    params.put("jobid", jobid);
+//                    ServerClass.get("checkfinished", params, new JsonHttpResponseHandler() {
+//                        public void onSuccess(int statusCode, PreferenceActivity.Header[] headers, String response) throws JSONException {
+//                            Log.e("bas", "blablabla");
+//                        }
+//                    } );
+//                    break;
+//                }
+//
+//
+//            }
+//
+//            public void onFailure(int statusCode, PreferenceActivity.Header[] headers, byte[] errorResponse, Throwable e) {
+//                // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+//                Log.e("Error", e.toString());
+//            }
+//
+//
+//        });
+        ServerClass.post("flowerrecognition", params, new TextHttpResponseHandler() {
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                Log.d("bla", "bla");
             }
 
-            public void onFailure(int statusCode, PreferenceActivity.Header[] headers, byte[] errorResponse, Throwable e) {
-                // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-                Log.d("Error", e.toString());
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                while (true){
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    RequestParams params = new RequestParams();
+                    params.put("jobid", jobid);
+                    ServerClass.post("checkfinished", params, new TextHttpResponseHandler() {
+                        @Override
+                        public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+
+                        }
+
+                        @Override
+                        public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                            Log.d("caine", responseString);
+                            if (responseString != "0"){
+                                proceedWithResult(responseString);
+                            }
+
+                        }
+                    });
+
+                }
             }
-
-
         });
 
 
