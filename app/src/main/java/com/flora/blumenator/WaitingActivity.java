@@ -11,6 +11,7 @@ import android.os.Bundle;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,19 +57,28 @@ public class WaitingActivity extends AppCompatActivity {
         String stamp = formatter.format(new Date());
         String jobid = android_id + stamp;
 
-        File myFile = new File(image_str);
         RequestParams params = new RequestParams();
         try {
-            params.put("mediafile", myFile);
-        } catch(FileNotFoundException e) {
-            Log.d("L1", e.toString());}
+            InputStream myInputStream = new FileInputStream(image_str);
+            params.put("mediafile", myInputStream);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         params.put("jobid", jobid);
 
-        ServerClass.get("flowerrecognition", params, new JsonHttpResponseHandler() {
+        ServerClass.post("flowerrecognition", params, new JsonHttpResponseHandler() {
             public void onSuccess(int statusCode, PreferenceActivity.Header[] headers, JSONObject response) {
                 // If the response is JSONObject instead of expected JSONArray
                 System.out.println("Delivery ok");
             }
+
+            public void onFailure(int statusCode, PreferenceActivity.Header[] headers, byte[] errorResponse, Throwable e) {
+                // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+                Log.d("Error", e.toString());
+            }
+
+
         });
 
 
