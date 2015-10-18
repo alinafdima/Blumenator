@@ -4,11 +4,14 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.preference.PreferenceActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -21,11 +24,16 @@ import java.util.Date;
 
 import android.provider.Settings.Secure;
 
+import com.loopj.android.http.*;
+
+import org.json.*;
+
 
 public class WaitingActivity extends AppCompatActivity {
 
     protected String android_id;
     String imageStr;
+
 
 
     @Override
@@ -40,72 +48,31 @@ public class WaitingActivity extends AppCompatActivity {
         sendServerRequest(imageStr);
     }
 
+
+
     void sendServerRequest(String image_str) {
-        Bitmap image = BitmapFactory.decodeFile(image_str);
+        Format formatter = new SimpleDateFormat("yyyy-MM-dd-hh-mm-ss");
+        String stamp = formatter.format(new Date());
+        String jobid = android_id + stamp;
 
-        // Send server request here
-//        HttpClient httpclient = new DefaultHttpClient();
+        File myFile = new File(image_str);
+        RequestParams params = new RequestParams();
+        try {
+            params.put("mediafile", myFile);
+        } catch(FileNotFoundException e) {}
+        params.put("jobid", jobid);
 
-    }
-
-    private class ServerRequestTask extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String ... urls) {
-            String response = "";
-
-            for(String urlString : urls) {
-
-
-                try {
-                    URL url = new URL(urlString);
-                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-
-                    try {
-                        urlConnection.setDoOutput(true);
-                        urlConnection.setDoInput(true);
-                        urlConnection.setChunkedStreamingMode(0);
-                        urlConnection.setRequestMethod("POST");
-
-                        Format formatter = new SimpleDateFormat("yyyy-MM-dd-hh-mm-ss");
-                        String stamp = formatter.format(new Date());
-                        String deviceId = android_id + stamp;
-
-                        urlConnection.setRequestProperty("id", deviceId);
-                        urlConnection.setRequestProperty("jobId", "placeholder");
-
-                        Bitmap image = BitmapFactory.decodeFile(imageStr);
-                        urlConnection.setRequestProperty("image", "placeholder");
-
-
-
-                        OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-//                        writeStream(out);
-
-                        InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-//                        readStream(in);
-                    }
-                    finally {
-                        urlConnection.disconnect();
-                    }
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-
-
-                return response;
+        ServerClass.get("flowerrecognition", params, new JsonHttpResponseHandler() {
+            public void onSuccess(int statusCode, PreferenceActivity.Header[] headers, JSONObject response) {
+                // If the response is JSONObject instead of expected JSONArray
+                System.out.println("Delivery ok");
             }
-            return response;
-        }
+        });
 
-        @Override
-        protected void onPostExecute(String result) {
-            proceedWithResult(result);
-        }
+
     }
+
+
 
 
     void proceedWithResult(String flower_name) {
