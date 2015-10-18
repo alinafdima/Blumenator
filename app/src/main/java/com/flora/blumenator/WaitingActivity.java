@@ -63,83 +63,68 @@ public class WaitingActivity extends AppCompatActivity {
         try {
             InputStream myInputStream = new FileInputStream(image_str);
             params.put("mediafile", myInputStream);
+            params.put("jobid", jobid);
+
+
+            ServerClass.post("flowerrecognition", params, new TextHttpResponseHandler() {
+                @Override
+                public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                    Log.d("flowerrecognition", "Failure");
+                }
+
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                    Log.d("flowerrecognition", "Success");
+                    checkResponse(jobid);
+                }
+            });
 
         } catch (FileNotFoundException e) {
+            Log.d("imageName", "File not found");
             e.printStackTrace();
         }
-        params.put("jobid", jobid);
 
-//        ServerClass.post("flowerrecognition", params, new TextHttpResponseHandler() {
-//            public void onSuccess(int statusCode, PreferenceActivity.Header[] headers, String response) {
-//                // If the response is JSONObject instead of expected JSONArray
-//                Log.e("boumare", "Delivery ok");
-//
-//                while (true) {
-//                    RequestParams params = new RequestParams();
-//                    params.put("jobid", jobid);
-//                    ServerClass.get("checkfinished", params, new JsonHttpResponseHandler() {
-//                        public void onSuccess(int statusCode, PreferenceActivity.Header[] headers, String response) throws JSONException {
-//                            Log.e("bas", "blablabla");
-//                        }
-//                    } );
-//                    break;
-//                }
-//
-//
-//            }
-//
-//            public void onFailure(int statusCode, PreferenceActivity.Header[] headers, byte[] errorResponse, Throwable e) {
-//                // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-//                Log.e("Error", e.toString());
-//            }
-//
-//
-//        });
-        ServerClass.post("flowerrecognition", params, new TextHttpResponseHandler() {
+    }
+
+
+    void checkResponse(String jobid) {
+        final String jobidAgain = jobid;
+        RequestParams params = new RequestParams();
+        params.put("jobid", jobid);
+        Log.d("checkfinished", "Before");
+        ServerClass.post("checkfinished", params, new TextHttpResponseHandler() {
             @Override
             public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                Log.d("bla", "bla");
+                Log.d("checkfinished", "Error");
             }
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, String responseString) {
-                while (true){
+                Log.d("checkfinished", "success = " + responseString);
+                Log.d("Response", responseString);
+                if (!responseString.equals("0")) {
+                    Log.d("checkfinished", "nonzero");
+                    proceedWithResult(responseString);
+                } else {
+                    Log.d("checkfinished", "response=0");
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    RequestParams params = new RequestParams();
-                    params.put("jobid", jobid);
-                    ServerClass.post("checkfinished", params, new TextHttpResponseHandler() {
-                        @Override
-                        public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-
-                        }
-
-                        @Override
-                        public void onSuccess(int statusCode, Header[] headers, String responseString) {
-                            Log.d("caine", responseString);
-                            if (responseString != "0"){
-                                proceedWithResult(responseString);
-                            }
-
-                        }
-                    });
-
+                    Log.d("checkfinished", "recall");
+                    checkResponse(jobidAgain);
                 }
+
             }
         });
-
-
     }
 
 
 
-
     void proceedWithResult(String flower_name) {
-        Intent intent = new Intent(WaitingActivity.this, WaitingActivity.class);
-        intent.putExtra("data",flower_name);
+        Intent intent = new Intent(WaitingActivity.this, ResultActivity.class);
+        intent.putExtra("data", flower_name);
         startActivity(intent);
     }
 }
